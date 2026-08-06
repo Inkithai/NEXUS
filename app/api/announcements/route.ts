@@ -1,18 +1,62 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+const announcementSchema = z.object({
+  title: z.string().min(1).max(200),
+  content: z.string().min(1).max(2000),
+});
+
 export async function GET(req: NextRequest) {
-  const cookie = req.cookies.get("session");
-  if (!cookie) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  // Fetch announcements ordered by createdAt desc
-  return NextResponse.json([]);
+  const session = req.cookies.get("session");
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const announcements = await prisma.announcement.findMany({
+      include: {
+        author: {
+          select: { id: true, name: true, email: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return NextResponse.json(announcements);
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to fetch announcements" }, { status: 500 });
+  }
 }
+
 export async function POST(req: NextRequest) {
-  const cookie = req.cookies.get("session");
-  if (!cookie) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = req.cookies.get("session");
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
-    if (!body.title || !body.content) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
-    return NextResponse.json({ id: "1", title: body.title, content: body.content }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    const validated = announcementSchema.parse(body);
+
+    const announcement = await prisma.announcement.create({
+      data: {
+        title: validated.title,
+        content: validated.content,
+        authorId: session.value,
+      },
+      include: {
+        author: {
+          select: { id: true, name: true, email: true }
+        }
+      }
+    });
+
+    return NextResponse.json(announcement, { status: 201 });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Failed to create announcement" }, { status: 500 });
   }
 }

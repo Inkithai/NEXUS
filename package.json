@@ -1,1 +1,29 @@
-{"name":"nexus","version":"1.0.0","dependencies":{"next":"14","react":"^18","prisma":"^5","@prisma/client":"^5","bcrypt":"^5","zod":"^3"},"devDependencies":{"typescript":"^5","tailwindcss":"^3","@types/react":"^18","@types/node":"^20"}}
+{
+  "name": "nexus",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@prisma/client": "^5",
+    "bcrypt": "^5",
+    "next": "14",
+    "prisma": "^5",
+    "react": "^18",
+    "react-dom": "^18",
+    "zod": "^3"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10",
+    "postcss": "^8",
+    "tailwindcss": "^3",
+    "typescript": "^5"
+  }
+}
